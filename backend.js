@@ -183,15 +183,16 @@ function generateSummary(text) {
     const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
     
     if (sentences.length === 0) {
-        return text.substring(0, 200) + '...';
+        return text.trim();
     }
 
-    // Juntar primeiras 3 frases
-    let summary = sentences.slice(0, 3).join(' ').trim();
-    
-    // Limitar a 256 caracteres
-    if (summary.length > 256) {
-        summary = summary.substring(0, 256) + '...';
+    // Juntar as primeiras frases (até 5) para manter coerência e contexto
+    const cleanedSentences = sentences.map(sentence => sentence.trim()).filter(Boolean);
+    let summary = cleanedSentences.slice(0, 5).join(' ').trim();
+
+    // Se ainda estiver muito curto, retornar o texto original (limitado a 2.000 caracteres para segurança)
+    if (!summary || summary.length < 100) {
+        summary = text.trim();
     }
 
     return summary;
