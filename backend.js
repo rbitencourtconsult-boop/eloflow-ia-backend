@@ -15,14 +15,21 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-// ✅ MIDDLEWARE
+// ✅ MIDDLEWARE - CORS configurado para aceitar requisições do EloFlow
 app.use(cors({
     origin: [
-        'https://apprub.com.br',
+        'https://www.apprub.com.br',  // ✅ Adicionado www
+        'https://apprub.com.br',       // Sem www também
+        'https://apprub.com.br/eloflow', // Com subdiretório
+        'https://www.apprub.com.br/eloflow', // Com subdiretório e www
         'http://localhost:3000',
-        'http://localhost:5000'
+        'http://localhost:5000',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:5000'
     ],
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(express.json());
@@ -183,16 +190,15 @@ function generateSummary(text) {
     const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
     
     if (sentences.length === 0) {
-        return text.trim();
+        return text.substring(0, 200) + '...';
     }
 
-    // Juntar as primeiras frases (até 5) para manter coerência e contexto
-    const cleanedSentences = sentences.map(sentence => sentence.trim()).filter(Boolean);
-    let summary = cleanedSentences.slice(0, 5).join(' ').trim();
-
-    // Se ainda estiver muito curto, retornar o texto original (limitado a 2.000 caracteres para segurança)
-    if (!summary || summary.length < 100) {
-        summary = text.trim();
+    // Juntar primeiras 3 frases
+    let summary = sentences.slice(0, 3).join(' ').trim();
+    
+    // Limitar a 256 caracteres
+    if (summary.length > 256) {
+        summary = summary.substring(0, 256) + '...';
     }
 
     return summary;
